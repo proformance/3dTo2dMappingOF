@@ -1,0 +1,2 @@
+
+-DCATKIN_DEVEL_PREFIX=/home/roar/of_v0.9.3_linux_release/apps/myApps/ProjectionMapping/devel -DCMAKE_INSTALL_PREFIX=/home/roar/of_v0.9.3_linux_release/apps/myApps/ProjectionMapping/install -G Unix Makefiles

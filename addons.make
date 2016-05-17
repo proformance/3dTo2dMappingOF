@@ -1,0 +1,7 @@
+ofxRO-mapping
+ofxLibwebsockets
+ofxSortableList
+ofxTriangle
+ofxGui
+ofxSvg
+ofxXmlSettings

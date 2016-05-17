@@ -1,0 +1,239 @@
+#include "ofApp.h"
+
+#include <sstream>
+#include <string>
+#include <iostream>
+#include <stdio.h>
+
+double positions[25][3]; // I need to be global or I'll ruin everything. Used in ofApp::onMessage(){
+
+//--------------------------------------------------------------
+void ofApp::setup(){
+
+    show_controls = false;
+
+    sp = new ShapeProperties();
+
+
+
+    //create template mapping objects that can be added afterwards via button
+
+    //option to add shapes that show the content of a given fbo
+
+
+    //option to add an image
+    mapping.addImageTemplate("image","images/ente.jpg");
+
+    //init mapping and load mapping settings from xml
+    //mapping.setup("mapping/mapping.xml");
+    mapping.setup();
+    mapping.showControls(false);
+
+    //set output position and size
+    mapping.setOutputShape(0, 0, ofGetWidth(), ofGetHeight());
+
+    //set position and size of control panel
+    //mapping.setControlShape(0, 0, ofGetWindowWidth()/2, ofGetWindowHeight());
+
+
+    client.connect("localhost",9090);
+    client.addListener(this);
+
+
+    //ofSetFrameRate(1);
+    ofSetLogLevel(OF_LOG_ERROR);
+
+}
+
+//--------------------------------------------------------------
+void ofApp::exit() {
+}
+
+//--------------------------------------------------------------
+void ofApp::update() {
+
+    //update the addon
+    mapping.update();
+
+}
+
+//--------------------------------------------------------------
+void ofApp::draw(){
+
+    //draw the mapped output image and the controls
+    mapping.draw();
+
+}
+
+//--------------------------------------------------------------
+void ofApp::keyPressed(int key){
+}
+
+//--------------------------------------------------------------
+void ofApp::keyReleased(int key){
+    switch(key) {
+        case 'f': {
+            ofToggleFullscreen();
+            break;
+        }
+        case 'a': {
+            sp->add(0.f,0.0,0.8,0.0,0.8,0.8,0.0,0.8,&mapping);
+            mapping.setPosition(sp->getShape(0),0);
+            break;
+        }
+        case 'q' : {
+           ic +=1;
+           ic = ic%4;
+           break;
+        }
+        case 'c' : {
+           std::stringstream ss;
+            ss << "{\"op\":\"subscribe\",\"topic\":\"/corners\"}";
+            client.send(ss.str());
+            break;
+        }
+    default: break;
+    }
+
+}
+
+//--------------------------------------------------------------
+void ofApp::mouseMoved(ofMouseEventArgs &args){
+
+}
+
+//--------------------------------------------------------------
+void ofApp::mouseDragged(ofMouseEventArgs &args){
+    ShapeProperty::Corner a = static_cast<ShapeProperty::Corner>(ic);
+    sp->setCorner(0,a,args.x/ofGetWidth(),args.y/ofGetHeight());
+    mapping.setPosition(sp->getShape(0),0);
+}
+
+//--------------------------------------------------------------
+void ofApp::mousePressed(ofMouseEventArgs &args){
+}
+
+//--------------------------------------------------------------
+void ofApp::mouseReleased(ofMouseEventArgs &args){
+}
+
+//--------------------------------------------------------------
+void ofApp::windowResized(int w, int h) {
+
+    mapping.setOutputShape(0, 0, ofGetWidth(), ofGetHeight());
+}
+
+//--------------------------------------------------------------
+void ofApp::gotMessage(ofMessage msg){
+
+}
+
+//--------------------------------------------------------------
+void ofApp::dragEvent(ofDragInfo dragInfo){ 
+
+}
+
+void ofApp::onConnect( ofxLibwebsockets::Event& args ){
+    cout<<"on connected"<<endl;
+
+    client.send("raw\r\n\r\n");
+
+
+
+}
+
+//--------------------------------------------------------------
+void ofApp::onOpen( ofxLibwebsockets::Event& args ){
+    cout<<"on open"<<endl;
+}
+
+//--------------------------------------------------------------
+void ofApp::onClose( ofxLibwebsockets::Event& args ){
+    cout << args.message;
+
+    cout<<"on close"<<endl;
+}
+
+//--------------------------------------------------------------
+void ofApp::onIdle( ofxLibwebsockets::Event& args ){
+    cout<<"on idle"<<endl;
+}
+
+//--------------------------------------------------------------
+void ofApp::onMessage( ofxLibwebsockets::Event& args ){
+        //cout<<"got message "<<args.message<<endl;
+
+    stringstream ss;
+    Json::Value parsedFromString;
+    Json::Reader reader;
+
+    //Dummy data used for debugging
+    //ss << "{\"topic\": \"/corners\", \"msg\": {\"data\": [1.0, 0.0, 0.0, 1.0, 0.0, 0.5, 1.0, -0.5, 0.5, 1.0, -0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], \"layout\": {\"dim\": [{\"stride\": 78, \"size\": 6, \"label\": \"\"}, {\"stride\": 13, \"size\": 13, \"label\": \"\"}], \"data_offset\": 0}}, \"op\": \"publish\"}";
+
+    ss << args.message;
+
+    if(reader.parse(ss.str(),parsedFromString)){
+
+
+        
+
+        for (Json::ArrayIndex i = 0; i < parsedFromString["msg"]["data"].size(); i+=3)
+        {
+            
+            double xPos = parsedFromString["msg"]["data"][i].asDouble();
+            double yPos = parsedFromString["msg"]["data"][i+1].asDouble();
+            double zPos = parsedFromString["msg"]["data"][i+2].asDouble();
+
+            int posNr = i / 3;
+            positions[posNr][0] = xPos;
+            positions[posNr][1] = yPos;
+            positions[posNr][2] = zPos;
+        }
+
+        //for(int object = 0; object < 1; object++){
+        int object = 0;
+            for(int corner = 4*object; corner < 4*object+4; corner++){
+            //for(int corner = 0; corner < 20; corner++){
+                //std::cout << "corner: " << corner << std::endl;
+                double distToCamera = 1.0;
+                double frameWidth = 0.5;
+
+                coord3d *s1 = new coord3d(-frameWidth,0.0,frameWidth);      //framecorner upper left
+                coord3d *s2 = new coord3d(frameWidth,0.0,frameWidth);       //framecorner upper right
+                coord3d *s3 = new coord3d(-frameWidth,0.0,-frameWidth);     //framecorner lower left
+
+                double x, y, z;
+                x = positions[corner][0];
+                y = positions[corner][1];
+                z = positions[corner][2];
+                //std::cout << "test: "<< z << std::endl;
+             //   std::cout << "y: "<< y << std::endl;
+
+                coord3d *point = new coord3d(x,y,z);
+
+                Map3Dto2D *mapper = new Map3Dto2D();
+                coord2d *map2d = mapper->map(point,s1,s2,s3,distToCamera);
+                
+                std::cout << "för object: " << object <<"för hörn: " << corner << " koord: ";
+                map2d->print();
+
+                ShapeProperty::Corner c = static_cast<ShapeProperty::Corner>(corner%4);
+                sp->setCorner(0,c,map2d->getX(),map2d->getY());
+            }
+            mapping.setPosition(sp->getShape(0),0);  //byt 0 mot object sen
+            //std::cout << "setting position for object=" << object << std::endl;
+        //}
+    }
+
+
+        //cout << "x=" << positions[1][0] << ", y=" << positions[1][1] << ", z=" << positions[1][2] << endl;
+        //Json::StyledWriter sw;
+        //std::cout << sw.write(parsedFromString) << std::endl;
+        client.send(ss.str());
+}
+
+
+//--------------------------------------------------------------
+void ofApp::onBroadcast( ofxLibwebsockets::Event& args ){
+    cout<<"got broadcast "<<args.message<<endl;
+}
