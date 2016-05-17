@@ -1,0 +1,79 @@
+/*
+ * ShapeProperties.cpp
+ *
+ *  Created on: Feb 25, 2016
+ *      Author: roar
+ */
+
+#include "ShapeProperties.h"
+
+ShapeProperties::ShapeProperties() {
+	// TODO Auto-generated constructor stub
+
+}
+
+int ShapeProperties::add(float ulx,float uly,float urx,float ury,float lrx,float lry,float llx,float lly,ofx2DMapping* mapping,int sort){
+	ShapeProperty *sp = new ShapeProperty(urx,ury,ulx,uly,lrx,lry,llx,lly,sort);
+	props.push_back(sp);
+	mapping->addToView();
+	switch(sort){
+		cout << sort;
+		case 0:
+			countBoxes++;
+			break;
+		case 1:
+			countHumans++;
+			break;
+	}
+	return props.size()-1;
+}
+
+
+int ShapeProperties::getHumans(){
+	return countHumans;
+}
+
+int ShapeProperties::getBoxes(){
+	return countBoxes;
+}
+
+
+int ShapeProperties::add(int ulx,int uly,int urx,int ury,int lrx,int lry,int llx,int lly,ofx2DMapping* mapping,int sort){
+	ShapeProperty *sp = new ShapeProperty(urx,ury,ulx,uly,lrx,lry,llx,lly,0);
+	props.push_back(sp);
+	mapping->addToView();
+	switch(sort){
+		case 0:
+			countBoxes++;
+			break;
+		case 1:
+			countHumans++;
+			break;
+	}
+	return props.size()-1;
+}
+
+void ShapeProperties::setCorner(int index,ShapeProperty::Corner corner, float posX, float posY){
+	props[index]->setCorner(corner,posX,posY);
+}
+float ShapeProperties::getCornerX(int index,ShapeProperty::Corner corner){
+	return props[index]->getCornerX(corner);
+}
+float ShapeProperties::getCornerY(int index,ShapeProperty::Corner corner){
+	return props[index]->getCornerY(corner);
+}
+void ShapeProperties::setAll(int index,float ulx,float uly,float urx,float ury,float lrx,float lry,float llx,float lly){
+	props[index]->setAll(ulx,uly,urx,ury,lrx,lry,llx,lly);
+}
+
+ShapeProperty* ShapeProperties::getShape(int i){
+	if(i<props.size()){
+		return props.at(i);
+	}
+	return 0;
+}
+
+
+int ShapeProperties::getSize(){
+	return props.size();
+}
