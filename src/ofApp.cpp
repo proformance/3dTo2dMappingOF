@@ -10,24 +10,30 @@
 //#define BEAM_ANGLE 0.27 //radians //calibrate
 #define PROJECTION_ANGLE 24.5 //degrees //calibrate
 #define numberOfEach 4
-//#define totalObjects 1
+#define numberOfTypes 4
 
-#include <fstream>
 
 //#define PROJ_ANGLE_RAD PROJECTION_ANGLE*pi/180
-double positions[25][5][3];
+double positions[numberOfEach*numberOfTypes][5][3];
 double xx,yy,zz,dist1;
-int sett[3];
 ofTrueTypeFont myfont;
-char iAmText[255];
 unsigned int countBoxes;
 unsigned int countPersons;
 unsigned int countPaths;
 int totalObjects[numberOfEach];
-int aaIndex = 0;
-int ii[6][3] = {{0,1,2},{0,2,1},{1,0,2},{1,2,0},{2,0,1},{2,1,0}};
-int aa[24][4] = {{0, 2, 3, 1}, {0, 2, 1, 3}, {0, 3, 2, 1}, {0, 3, 1, 2}, {0, 1, 2, 3}, {0, 1, 3, 2}, {2, 0, 3, 1}, {2, 0, 1, 3}, {2, 3, 0, 1}, {2, 3, 1, 0}, {2, 1, 0, 3}, {2, 1, 3, 0}, {3, 0, 2, 1}, {3, 0, 1, 2}, {3, 2, 0, 1}, {3, 2, 1, 0}, {3, 1, 0, 2}, {3, 1, 2, 0}, {1, 0, 2, 3}, {1, 0, 3, 2}, {1, 2, 0, 3}, {1, 2, 3, 0}, {1, 3, 0, 2}, {1, 3, 2, 0}};
 bool check;
+
+
+
+
+
+// FOR DEBUGGING, IF IT IN SOME CASE IS NEEDED TO TEST DIFFERENT PERMUTATIONS OF EITHER THE COORDINATE SYSTEM (ii) OR CORNERS (aa) 
+//int ii[6][3] = {{0,1,2},{0,2,1},{1,0,2},{1,2,0},{2,0,1},{2,1,0}};
+//int aa[24][4] = {{0, 2, 3, 1}, {0, 2, 1, 3}, {0, 3, 2, 1}, {0, 3, 1, 2}, {0, 1, 2, 3}, {0, 1, 3, 2}, {2, 0, 3, 1}, {2, 0, 1, 3}, {2, 3, 0, 1}, {2, 3, 1, 0}, {2, 1, 0, 3}, {2, 1, 3, 0}, {3, 0, 2, 1}, {3, 0, 1, 2}, {3, 2, 0, 1}, {3, 2, 1, 0}, {3, 1, 0, 2}, {3, 1, 2, 0}, {1, 0, 2, 3}, {1, 0, 3, 2}, {1, 2, 0, 3}, {1, 2, 3, 0}, {1, 3, 0, 2}, {1, 3, 2, 0}};
+//int aaIndex = 0;
+
+
+
 
 std::ofstream f;
 bool printOutput;
@@ -38,14 +44,9 @@ double offY,dist,PROJ_ANGLE_RAD,vinkel;
 void ofApp::setup(){
 
     show_controls = false;
-	ofBackground(255,255,255);
-//    sprops = new ShapeProperties();
-    //create template mapping objects that can be added afterwards via button
-    //option to add shapes that show the content of a given fbo
-    //option to add an image
+    ofBackground(255,255,255);
     mapping.addImageTemplate("image","images/red_box.jpeg");
     mapping.addImageTemplate("image2","images/green_ring.jpeg");
-   // mapping.addImageTemplate("image3","images/ente2.jpg");
     mapping.addImageTemplate("image4","images/green_box.jpeg");
     mapping.addImageTemplate("image5","images/green_placehere.jpeg");
     //init mapping and load mapping settings from xml
@@ -85,35 +86,7 @@ void ofApp::update() {
 void ofApp::draw(){
     //draw the mapped output image and the controls
     mapping.draw();
-    /*
-    if(check){
-        int corners[]={1,0,3,2};
-        string name[]={"0","1","2","3"};
-        ShapeProperty::Corner c0 = static_cast<ShapeProperty::Corner>(corners[0]);
-        //correction if outside to see the actual position, should be removed in the final version
-        for(int object=0;object<0;object++){
-            for(int i=0;i<4;i++){
-                c0 = static_cast<ShapeProperty::Corner>(corners[i]);
-                double x,y;
-                if(sprops.getCornerX(object,c0)>1){
-                    x=ofGetWindowWidth();
-                    }else if(sprops.getCornerX(object,c0)<0){
-                    x=0;
-                    }else{
-                    x=sprops.getCornerX(object,c0)*ofGetWindowWidth();
-                }
-                if(sprops.getCornerY(object,c0)>1){
-                    y=ofGetWindowHeight();
-                    }else if(sprops.getCornerY(object,c0)<0){
-                    y=0;
-                    }else{
-                    y=sprops.getCornerY(object,c0)*ofGetWindowHeight();
-                }
-                ofDrawBitmapString(name[i], x,y+15);
-            }
-        }
-    }
-    */
+
 }
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
@@ -186,59 +159,32 @@ void ofApp::keyReleased(int key){
 
 		//cout << "krasch??";
 	check=true;
-
-           /* while(countBoxes<objectCount){ //have to add boxes
-                sprops.add(0.f,0.0,0.0,0.0,0.0,0.0,0.0,0.0,&mapping,currentType);
-		mapping.setPosition(sprops.getShape(countBoxes),countBoxes);
-                countBoxes++;
-                check=true;
-                cout << "adding one box" << endl;
-            }
-	   
-	    currentType = 1;
-            while(countPersons<objectCount){ //have to add humans
-                sprops.add(0.f,0.0,0.0,0.0,0.0,0.0,0.0,0.0,&mapping,currentType);
-		mapping.setPosition(sprops.getShape(countPersons+currentType*objectCount),countPersons+currentType*objectCount);
-                countPersons++;
-                check=true;
-                cout << "adding one human" << endl;
-            }
-	    currentType=2; //Tydligen går det inte att göra currentType=2? Spelar det dock roll?
-	    while(countPaths<objectCount){ //have to add Paths
-		  cout << "Check 1" << endl;
-                sprops.add(0.f,0.0,0.0,0.0,0.0,0.0,0.0,0.0,&mapping,currentType); //Här blir det galet
-		  cout << "Check 2" << endl;
-		mapping.setPosition(sprops.getShape(countPaths),countPaths);
-		  cout << "Check 3" << endl;
-                countPaths++;
-                check=true;
-                cout << "adding one pathpoint" << endl;
-            }*/
-            std::stringstream ss;
-            ss << "{\"op\":\"subscribe\",\"topic\":\"/corners\"}";
-            client.send(ss.str());
-            ss << "{\"op\":\"subscribe\",\"topic\":\"/ground_based_rgbd_people_detector/PeopleCorners\"}";
-            client.send(ss.str());
-	    //ss << "{\"op\":\"subscribe\",\"topic\":\"/path_corner_creator/NavigationCorners\"}";
-            //client.send(ss.str());
+        std::stringstream ss;
+        ss << "{\"op\":\"subscribe\",\"topic\":\"/box_corners\"}";
+        client.send(ss.str());
+        ss << "{\"op\":\"subscribe\",\"topic\":\"/ground_based_rgbd_people_detector/PeopleCorners\"}";
+        client.send(ss.str());
+	//ss << "{\"op\":\"subscribe\",\"topic\":\"/path_corner_creator/NavigationCorners\"}";
+        //client.send(ss.str());
             break;
         }
-        case 'p' : {
-            ofxLibwebsockets::Connection c;
-            //ofxLibwebsockets::Event args(c, "{"topic": "/ground_based_rgbd_people_detector/PeopleCorners", "msg": {"data": [-0.14264883175492288, 0.1981800377368927, -0.0, -0.14264883175492288, 0.5981800377368927, -0.0, 0.25735116824507714, 0.1981800377368927, -0.0, 0.25735116824507714, 0.5981800377368927, -0.0, 100.0, 100.0], "layout": {"dim": [{"stride": 14, "size": 6, "label": ""}, {"stride": 14, "size": 14, "label": ""}], "data_offset": 0}}, "op": "publish"}",false);
-            ofxLibwebsockets::Event args(c, "{\"topic\": \"/ground_based_rgbd_people_detector/PeopleCorners\", \"msg\": {\"data\": [0.28222839832305907, 0.5381014823913575, -0.0, 0.28222839832305907, 0.9381014823913574, -0.0, 0.682228398323059, 0.5381014823913575, -0.0, 0.682228398323059, 0.9381014823913574, -0.0, 100.0, 100.0], \"layout\": {\"dim\": [{\"stride\": 14, \"size\": 1, \"label\": \"\"}, {\"stride\": 14, \"size\": 14, \"label\": \"\"}], \"data_offset\": 0}}, \"op\": \"publish\"}",false);
-            ofApp::onMessage(args);
-	
-            break;
-        }
-        case 'l' : {
-
-            //ofxLibwebsockets::Connection c;
+        case 'p' : { //for debugging, do a simulated message from people 
+	  /*
+	    ofxLibwebsockets::Connection c;
+            ofxLibwebsockets::Event args(c, "{"topic": "/ground_based_rgbd_people_detector/PeopleCorners", "msg": {"data": [-0.14264883175492288, 0.1981800377368927, -0.0, -0.14264883175492288, 0.5981800377368927, -0.0, 0.25735116824507714, 0.1981800377368927, -0.0, 0.25735116824507714, 0.5981800377368927, -0.0, 100.0, 100.0], "layout": {"dim": [{"stride": 14, "size": 6, "label": ""}, {"stride": 14, "size": 14, "label": ""}], "data_offset": 0}}, "op": "publish"}",false);
             
-            //en ist för två: ofxLibwebsockets::Event args(c, "{\"topic\": \"/corners\", \"msg\": {\"data\": [0.0, 0.0, 0.0, 0.5, 0.0, 0.5, 1.0, 0.0, 0.5, 0.5, 0.0, 1.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], \"layout\": {\"dim\": [{\"stride\": 78, \"size\": 6, \"label\": \"\"}, {\"stride\": 13, \"size\": 13, \"label\": \"\"}], \"data_offset\": 0}}, \"op\": \"publish\"}",false);
-            //ofxLibwebsockets::Event args(c, "{\"topic\": \"/corners\", \"msg\": {\"data\": [3.6210500230044276, -0.01811362813217099, -0.7265350072918831, 3.62096579321145, 0.03905565090588978, -1.1224285112037438, 3.6210347866225354, 0.3777798838112091, -0.6693657238523522, 3.6209505568295577, 0.4349491628492699, -1.0652592277642126, 1.0, 0.0, 3.6210500230044276, -0.01811362813217099, -0.7265350072918831, 3.62096579321145, 0.03905565090588978, -1.1224285112037438, 3.6210347866225354, 0.3777798838112091, -0.6693657238523522, 3.6209505568295577, 0.4349491628492699, -1.0652592277642126, 1.0, 0.0], \"layout\": {\"dim\": [{\"stride\": 28, \"size\": 6, \"label\": \"\"}, {\"stride\": 14, \"size\": 14, \"label\": \"\"}], \"data_offset\": 0}}, \"op\": \"publish\"}",false);
-            //ofApp::onMessage(args);
+            ofApp::onMessage(args);
+	  */p
             break;
+        }
+    case 'l' : { //for debugging, do a simulated message of corners
+	  /*
+            ofxLibwebsockets::Connection c;
+            ofxLibwebsockets::Event args(c, "{\"topic\": \"/box_corners\", \"msg\": {\"data\": [3.6210500230044276, -0.01811362813217099, -0.7265350072918831, 3.62096579321145, 0.03905565090588978, -1.1224285112037438, 3.6210347866225354, 0.3777798838112091, -0.6693657238523522, 3.6209505568295577, 0.4349491628492699, -1.0652592277642126, 1.0, 0.0, 3.6210500230044276, -0.01811362813217099, -0.7265350072918831, 3.62096579321145, 0.03905565090588978, -1.1224285112037438, 3.6210347866225354, 0.3777798838112091, -0.6693657238523522, 3.6209505568295577, 0.4349491628492699, -1.0652592277642126, 1.0, 0.0], \"layout\": {\"dim\": [{\"stride\": 28, \"size\": 6, \"label\": \"\"}, {\"stride\": 14, \"size\": 14, \"label\": \"\"}], \"data_offset\": 0}}, \"op\": \"publish\"}",false);
+            
+	    ofApp::onMessage(args);
+            break;
+	  */
         }
         default: break;
     }
@@ -248,9 +194,6 @@ void ofApp::mouseMoved(ofMouseEventArgs &args){
 }
 //--------------------------------------------------------------
 void ofApp::mouseDragged(ofMouseEventArgs &args){
-    //ShapeProperty::Corner a = static_cast<ShapeProperty::Corner>(ic);
-    //sprops.setCorner(0,a,args.x/ofGetWidth(),args.y/ofGetHeight());
-    //mapping.setPosition(sprops.getShape(0),0);
 }
 //--------------------------------------------------------------
 void ofApp::mousePressed(ofMouseEventArgs &args){
@@ -269,283 +212,235 @@ void ofApp::gotMessage(ofMessage msg){
 void ofApp::dragEvent(ofDragInfo dragInfo){
 }
 void ofApp::onConnect( ofxLibwebsockets::Event& args ){
-    //cout<<"on connected"<<endl;
-    client.send("rawrnrn");
+  //cout<<"on connected"<<endl;
+  client.send("rawrnrn");
+  /* Try to add here to not having to press c to start the mapping
+     check=true;
+     std::stringstream ss;
+     ss << "{\"op\":\"subscribe\",\"topic\":\"/box_corners\"}";
+     client.send(ss.str());
+     ss << "{\"op\":\"subscribe\",\"topic\":\"/ground_based_rgbd_people_detector/PeopleCorners\"}";
+     client.send(ss.str());
+     //ss << "{\"op\":\"subscribe\",\"topic\":\"/path_corner_creator/NavigationCorners\"}";
+     //client.send(ss.str());
+     */
 }
 //--------------------------------------------------------------
 void ofApp::onOpen( ofxLibwebsockets::Event& args ){
-    //cout<<"on open"<<endl;
+  //cout<<"on open"<<endl;
 }
 //--------------------------------------------------------------
 void ofApp::onClose( ofxLibwebsockets::Event& args ){
-    cout << args.message;
-   // cout<<"on close"<<endl;
+  cout << args.message;
+  // cout<<"on close"<<endl;
 }
 //--------------------------------------------------------------
 void ofApp::onIdle( ofxLibwebsockets::Event& args ){
-    //cout<<"on idle"<<endl;
+  //cout<<"on idle"<<endl;
 }
 //--------------------------------------------------------------
 void ofApp::onMessage( ofxLibwebsockets::Event& args ){
+  
+  cout<<"got message "<<args.message<<endl;
+  stringstream ss;
+  Json::Value parsedFromString;
+  Json::Reader reader;
+  ss << args.message;
 
-    cout<<"got message "<<args.message<<endl;
-    stringstream ss;
-    Json::Value parsedFromString;
-    Json::Reader reader;
-    ss << args.message;
-    if(reader.parse(ss.str(),parsedFromString)){
+
+
+
+  /* IF MESSAGE HAS BEEN RECEIVED PROPERLY */
+  
+  if(reader.parse(ss.str(),parsedFromString)){
+    
+    //f.open("data.txt");
+    
+    Json::ArrayIndex t = 1;
+    //  std::cout << parsedFromString.toStyledString()<<endl;
+    Json::Value cornerCountV = parsedFromString["msg"]["layout"]["dim"][t]["size"];
+    Json::ArrayIndex cornerCount = cornerCountV.asInt();
+    t=0;
+    Json::Value objectCountV = parsedFromString["msg"]["layout"]["dim"][t]["size"];
+    Json::ArrayIndex objectCount = objectCountV.asInt();
+
+
+    /* IF THE MESSAGE IS EMPTY, THEN DO NOTHING */
+
+    if(objectCount==0){
+      return;
+    }
+
+    
+    cout << "---------------------------------------------------------" << endl; // for debugging
+    for(int i=0;i<numberOfEach;i++){
+      if(objectsOfEach[i]!=0){
+	countDifferent++;
+	cout << "har mottagit data att rita ut " << objectsOfEach[i];
+	switch(i){
+	case 0:
+	  cout << " boxar";
+	  break;
+	case 1:
+	  //cout << " människor"; //will cause the messages to wiggle in the console because it belongs to another topic, either ONLY this or the others
+	  break;
+	case 2:
+	  cout << " rätt position";
+	  break;
+	case 3:
+	  cout << " byggposition";
+	  break;
+	}
+	cout << endl;
+      }
+      objectProj[i]=0; //set that none of the objects have yet been projected
+    }
+    cout << "---------------------------------------------------------" << endl;
+
+
+    /* SET THE PLANE, DISTANCE TO PROJECTOR AND OFFSET */
+    
+    //move this block of code to setup when fully calibrated. **********************************************************
+    double distToCamera = dist;//(WIDTH/2)/tan(BEAM_ANGLE); 
+    double planeOffsetY = offY;//KINECT_PROJ_DIST-distToCamera*sin(PROJ_ANGLE_RAD);
+    
+    coord3d *s1 = new coord3d(-WIDTH/2,sin(pi/2-PROJ_ANGLE_RAD)*HEIGHT/2+planeOffsetY,cos(pi/2-PROJ_ANGLE_RAD)*HEIGHT/2);  //framecorner upper left
+    coord3d *s2 = new coord3d(WIDTH/2,sin(pi/2-PROJ_ANGLE_RAD)*HEIGHT/2+planeOffsetY,cos(pi/2-PROJ_ANGLE_RAD)*HEIGHT/2);  //framecorner upper right
+    coord3d *s3 = new coord3d(-WIDTH/2,-sin(pi/2-PROJ_ANGLE_RAD)*HEIGHT/2+planeOffsetY,-cos(pi/2-PROJ_ANGLE_RAD)*HEIGHT/2); //framecorner lower left
+    
+    EQsolve *eq1 = new EQsolve();
+    coord3d* N1 = eq1->solve(s1->getX(),s1->getY(),s1->getZ(),s2->getX(),s2->getY(),s2->getZ(),s3->getX(),s3->getY(),s3->getZ());
+    
+    double normalization_length = sqrt(pow(N1->getX(),2)+pow(N1->getY(),2)+pow(N1->getZ(),2));
+    N1->setX(N1->getX()/normalization_length);
+    N1->setY(N1->getY()/normalization_length);
+    N1->setZ(N1->getZ()/normalization_length);
+    s1->setX(s1->getX()+dist*N1->getX());
+    s1->setY(s1->getY()+dist*N1->getY());
+    s1->setZ(s1->getZ()+dist*N1->getZ());
+    
+    s2->setX(s2->getX()+dist*N1->getX());
+    s2->setY(s2->getY()+dist*N1->getY());
+    s2->setZ(s2->getZ()+dist*N1->getZ());
+    
+    s3->setX(s3->getX()+dist*N1->getX());
+    s3->setY(s3->getY()+dist*N1->getY());
+    s3->setZ(s3->getZ()+dist*N1->getZ());
+    //*******************************************************************************************************************
+
+
+    
+    /* debugging of plane
+       std::cout << "s1-s2-s3" << "\n";
+       s1->print();
+       //std::cout << " ";
+       s2->print();
+       //std::cout << " ";
+       s3->print();
+       std::cout << "\n";
+       std::cout << "dist=" << distToCamera << " planeoffset=" << planeOffsetY  << "q=" << ic << endl;
+    */
+
+
+
+
+    
+    /* DRAW EVERY OBJECT THAT HAS BEEN RECEIVED IN THE MESSAGE */
+    
+    for(int nr = 0;nr<objectCount;nr++){
+      
+      /* CHECK THE TYPE OF THE OBJECT THAT IS GOING TO BE DRAWN */
+      
+      int currentType=-1;
+      int reading = positions[nr][4][1];
+      if(reading==0.0){
+	currentType=0; //röd låda
+      }else if(reading==100.0){
+	currentType=1; //Människa
+      }else if(reading==-1.0){
+	currentType=2; //grön låda
+      }else if(reading==-2.0){
+	currentType=3; //bygglåda 20160512
+      }else{
+	break; //not a valid reading
+      }
+      
+
+
+
+      
+      /* ADD ONE OBJECT TO THE COUNTER THAT HAS BEEN DRAWN */
+      
+      int object=0;
+      for(int i=0;i<currentType;i++){
+	object+=totalObjects[i];
+      }
+      object+=objectProj[currentType];
+
+
+
+
+      /* MAP EVERY CORNER OF THE CURRENT OBJECT AND THEN SET IT TO THE PROPERTIES */
+      
+      for(int corner = 0; corner < 4; corner++){
 	
-	//f.open("data.txt");
-
-        Json::ArrayIndex t = 1;
-        //  std::cout << parsedFromString.toStyledString()<<endl;
-        Json::Value cornerCountV = parsedFromString["msg"]["layout"]["dim"][t]["size"];
-        Json::ArrayIndex cornerCount = cornerCountV.asInt();
-        t=0;
-        Json::Value objectCountV = parsedFromString["msg"]["layout"]["dim"][t]["size"];
-        Json::ArrayIndex objectCount = objectCountV.asInt();
-	if(objectCount==0){
-		return;
+	double x,y,z;
+	x = positions[nr][corner][0];
+	y = positions[nr][corner][1];
+	z = positions[nr][corner][2];
+	coord3d *point = new coord3d(x,y,z);
+	Map3Dto2D *mapper = new Map3Dto2D();
+	if(printOutput){
+	  mapper->setFstream();
+	}else{
+	  
 	}
-        /* for(unsigned int q = 0;q<countBoxes+countPersons;q++){
-            sprops.setAll(q,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0);
-        }
-        */
-        //add enough pictures so it wont try to change something that doesnt exist later on
-        
-        //mapping.setPosition(sprops.getShape(0),0);
-        //countBoxes++;
+	coord2d *map2d = mapper->map(point,s1,s2,s3,distToCamera);
 
-	int objectsOfEach[numberOfEach];
+	int corners[]={3,0,2,1};
+	/*if (currentType==0)  //if some type needs a "special treatment" to work properly
+	  {
 
-	for(int i=0;i<numberOfEach;i++){
-		objectsOfEach[i]=0;
-	}
-
-
-        for (Json::ArrayIndex i = 0; i < objectCount; i++){
-            for(Json::ArrayIndex corner = 0; corner < 4; corner++){
-                int rel = i*cornerCount+corner*3;
-                double xPos = parsedFromString["msg"]["data"][rel].asDouble();
-                double yPos = parsedFromString["msg"]["data"][rel+1].asDouble();
-                double zPos = parsedFromString["msg"]["data"][rel+2].asDouble();
-		int q=4; //correct pattern according to decision                
-		int signX = -1;
-		int signY = -1;
-		int signZ = -1;
-		positions[i][corner][ii[q][0]] = signX*xPos;  
-		positions[i][corner][ii[q][1]] = signY*yPos;
-		positions[i][corner][ii[q][2]] = signZ*zPos;
-                //std::cout << "i=" << i << " xPos=" << xPos << " yPos=" << yPos << " zPos=" << zPos << "q=" << ic << endl;
-                //*/
-            }
-            int rel = i*cornerCount+4*3;
-            //positions[i][4][0] = parsedFromString["msg"]["data"][rel].asDouble();
-            positions[i][4][1] = parsedFromString["msg"]["data"][rel+1].asDouble(); // Ändrat från den övre 20160512 (För att hämta proerty och inte ID?)
-	    
-		int currentType=-1;
-		int reading = positions[i][4][1];
-		if(reading==0.0){
-		    currentType=0; //röd låda
-		 }else if(reading==100.0){
-		    currentType=1; //Människa
-		 //}else if(reading==1.0){
-		 //   currentType=2; //kommer ej finnas 20160512
-		 }else if(reading==-1.0){
-		   currentType=2; //grön låda
-		 }else if(reading==-2.0){
-		    currentType=3; //bygglåda 20160512
-		}else{
-		    //break;
-		}
-		
-		objectsOfEach[currentType]++;
-
-        }
-
-	//how many different?
-
-	int countDifferent = 0;
+	  }*/
+	int c = corners[corner%4];
 	
-        int objectProj[objectCount];
-	cout << "---------------------------------------------------------" << endl;
-	for(int i=0;i<numberOfEach;i++){
-		if(objectsOfEach[i]!=0){
-			countDifferent++;
-			cout << "har mottagit data att rita ut " << objectsOfEach[i];
-			switch(i){
-				case 0:
-					cout << " boxar";
-					break;
-				case 1:
-					//cout << " människor";
-					break;
-				case 2:
-					cout << " rätt position";
-					break;
-				case 3:
-					cout << " byggposition";
-					break;
-			}
-			cout << endl;
-		}
-		objectProj[i]=0;
+	sprops.setCorner(object,c,map2d->getX(),1-map2d->getY());
+	//std::cout << "hörn: " << corner << " x=" << x << " y=" << y << " z=" << z <<  " X=" << map2d->getX() << " Y=" << map2d->getY() << endl; //debugging
+      }
+
+      //std::cout << "redrawing " << currentType << " number " << object << endl;
+      //std::cout << "setting position for object=" << object << std::endl;
+
+
+      /* SET POSITIONS FOR THE OBJECT, THAT HAS JUST BEEN PROCESSED, AT THE MAPPER AND THEN INCREASE NUMBER OF OBJECTS THAT HAS BEEN PROCESSED */
+      
+      mapping.setPosition(sprops.getShape(object),object);
+      objectProj[currentType]++;
+            
+
+      /* "ERASE" EVERY IMAGE OF THE CURRENT TYPE THAT NOT HAS BEEN RECEIVED (SET EVERY CORNER OF THE IMAGE TO 0) */
+      if(objectProj[currentType]==objectsOfEach[currentType]){
+	while(objectProj[currentType]++<totalObjects[currentType]){
+	  object++;
+	  //std::cout << "erasing " << currentType << " number " << object << endl;
+	  sprops.getShape(object)->setAll(0.f,0.0,0.0,0.0,0.0,0.0,0.0,0.0);
+	  mapping.setPosition(sprops.getShape(object),object);
 	}
+	
+      }
+    }
+  }
 
+  
+  /*	FOR DEBUGGING
 
-		double distToCamera = dist;//(WIDTH/2)/tan(BEAM_ANGLE); 
-                double planeOffsetY = offY;//KINECT_PROJ_DIST-distToCamera*sin(PROJ_ANGLE_RAD);
-
-               // coord3d *s1 = new coord3d(-WIDTH/2,cos(pi/2-PROJ_ANGLE_RAD)*HEIGHT/2,sin(pi/2-PROJ_ANGLE_RAD)*HEIGHT/2+planeOffsetY);  //framecorner upper left
-                //coord3d *s2 = new coord3d(WIDTH/2,cos(pi/2-PROJ_ANGLE_RAD)*HEIGHT/2,sin(pi/2-PROJ_ANGLE_RAD)*HEIGHT/2+planeOffsetY);  //framecorner upper right
-                //coord3d *s3 = new coord3d(-WIDTH/2,-cos(pi/2-PROJ_ANGLE_RAD)*HEIGHT/2,-sin(pi/2-PROJ_ANGLE_RAD)*HEIGHT/2+planeOffsetY); //framecorner lower left
-                        
-                coord3d *s1 = new coord3d(-WIDTH/2,sin(pi/2-PROJ_ANGLE_RAD)*HEIGHT/2+planeOffsetY,cos(pi/2-PROJ_ANGLE_RAD)*HEIGHT/2);  //framecorner upper left
-                coord3d *s2 = new coord3d(WIDTH/2,sin(pi/2-PROJ_ANGLE_RAD)*HEIGHT/2+planeOffsetY,cos(pi/2-PROJ_ANGLE_RAD)*HEIGHT/2);  //framecorner upper right
-                coord3d *s3 = new coord3d(-WIDTH/2,-sin(pi/2-PROJ_ANGLE_RAD)*HEIGHT/2+planeOffsetY,-cos(pi/2-PROJ_ANGLE_RAD)*HEIGHT/2); //framecorner lower left
-		
-		EQsolve *eq1 = new EQsolve();
-		coord3d* N1 = eq1->solve(s1->getX(),s1->getY(),s1->getZ(),s2->getX(),s2->getY(),s2->getZ(),s3->getX(),s3->getY(),s3->getZ());
-
-		double normalization_length = sqrt(pow(N1->getX(),2)+pow(N1->getY(),2)+pow(N1->getZ(),2));
-		N1->setX(N1->getX()/normalization_length);
-		N1->setY(N1->getY()/normalization_length);
-		N1->setZ(N1->getZ()/normalization_length);
-		s1->setX(s1->getX()+dist*N1->getX());
-		s1->setY(s1->getY()+dist*N1->getY());
-		s1->setZ(s1->getZ()+dist*N1->getZ());
-
-		s2->setX(s2->getX()+dist*N1->getX());
-		s2->setY(s2->getY()+dist*N1->getY());
-		s2->setZ(s2->getZ()+dist*N1->getZ());
-
-		s3->setX(s3->getX()+dist*N1->getX());
-		s3->setY(s3->getY()+dist*N1->getY());
-		s3->setZ(s3->getZ()+dist*N1->getZ());
-	//std::cout << "--------------------------------------------------------" << endl;
-
-               //std::cout << "s1-s2-s3" << "\n";
-         /*       s1->print();
-                //std::cout << " ";
-                s2->print();
-                //std::cout << " ";
-                s3->print();
-	*/	//std::cout << "\n";
-		//std::cout << "dist=" << distToCamera << " planeoffset=" << planeOffsetY  << "q=" << ic << endl;
-
-	//int objectNrInMessage = 0;
-for(int nr = 0;nr<objectCount;nr++){
-      //  for(int object = 0; object < sprops.getSize(); object++){ // sprops_boxes->count eller likn
-
-		int currentType=-1;
-		int reading = positions[nr][4][1];
-		if(reading==0.0){
-		    currentType=0; //röd låda
-		 }else if(reading==100.0){
-		    currentType=1; //Människa
-		 //}else if(reading==1.0){
-		 //   currentType=2; //kommer ej finnas 20160512
-		 }else if(reading==-1.0){
-		   currentType=2; //grön låda
-		 }else if(reading==-2.0){
-		    currentType=3; //bygglåda 20160512
-		}else{
-		    //break;
-		}
-
-//		cout << "reading" << reading << endl;
-		int object=0;//currentType*totalObjects+objectProj[currentType];
-		for(int i=0;i<currentType;i++){
-			object+=totalObjects[i];
-			//cout << "redrw" << object << endl;
-		}
-		object+=objectProj[currentType];
-//            if(sprops.getShape(object)->getType()==currentType){
-
-		                
-		        for(int corner = 0; corner < 4; corner++){
-		            //for(int corner = 0; corner < 4; corner++){
-		                //std::cout << "corner: " << corner << std::endl;
-
-		                double x,y,z;
-		                x = positions[nr][corner][0];
-		                y = positions[nr][corner][1];
-		                z = positions[nr][corner][2];
-		                coord3d *point = new coord3d(x,y,z);
-		                Map3Dto2D *mapper = new Map3Dto2D();
-				if(printOutput){
-					mapper->setFstream();
-				}else{
-					
-				}
-		                coord2d *map2d = mapper->map(point,s1,s2,s3,distToCamera);
-		                //std::cout << "xyz: " << x <<" för hörn: " << corner << " koord: ";
-				//std::cout << "map2d = ";                        
-				//map2d->print();
-		                //för boxar
-		                // int corners[]={3,0,2,1};
-		                //för människor
-				int corners[]={3,0,2,1};
-				/*if (currentType==2)
-				{
-		                	corners[0] = aa[aaIndex][0];
-					corners[1] = aa[aaIndex][1];
-					corners[2] = aa[aaIndex][2];
-					corners[3] = aa[aaIndex][3];	
-				}*/
-		                int c = corners[corner%4];
-
-		                //sprops.setCorner(0,c,map2d->getX(),map2d->getY());
-		                sprops.setCorner(object,c,map2d->getX(),1-map2d->getY());
-		                //std::cout << "hörn: " << corner << " x=" << x << " y=" << y << " z=" << z <<  " X=" << map2d->getX() << " Y=" << map2d->getY() << endl;
-		        }
-			//std::cout << "redrawing " << currentType << " number " << object << endl;
-		            //mapping.setPosition(sprops.getShape(0),0); //byt 0 mot object sen
-		            mapping.setPosition(sprops.getShape(object),object); //byt 0 mot typ av bild sen
-		            // std::cout << "setting position for object=" << object << std::endl;
-		         	objectProj[currentType]++;
-				 
-			
-                
-		if(objectProj[currentType]==objectsOfEach[currentType]){
-			while(objectProj[currentType]++<totalObjects[currentType]){
-				object++;
-				//std::cout << "erasing " << currentType << " number " << object << endl;
-				sprops.getShape(object)->setAll(0.f,0.0,0.0,0.0,0.0,0.0,0.0,0.0);
-				mapping.setPosition(sprops.getShape(object),object);
-			}
-		
-		}
-	/*}else{
-		
-		if(nr>=objectCount){
-			return;
-		}
-	}*/
-
-/*
-int whatToSee = 1;
-		std::cout << sprops.getShape(whatToSee)->getCornerX(0) << " " << sprops.getShape(whatToSee)->getCornerY(0) << " 0" << endl;
-		std::cout << sprops.getShape(whatToSee)->getCornerX(1) << " " << sprops.getShape(whatToSee)->getCornerY(1) << " 0" << endl;
-		std::cout << sprops.getShape(whatToSee)->getCornerX(2) << " " << sprops.getShape(whatToSee)->getCornerY(2) << " 0" << endl;
-		std::cout << sprops.getShape(whatToSee)->getCornerX(3) << " " << sprops.getShape(whatToSee)->getCornerY(3) << " 0" << endl;
-		std::cout << "--------------------------------------------------------" << endl;
- */
-	    }
-		printOutput=false;
-     //   }
+	cout << "distance = " << dist << endl;
+	cout << "offset in y for plane = " << offY << endl;
+	cout << "angle for plane = " << vinkel << endl;
+  */
+  //cout << ofGetFrameRate() << endl;
 }
-        /*for(int i=0;i<sprops.getSize();i++){
-            int c = 0;
-            //cout << "x=" << sprops.getCornerX(i,c) << " y=" << sprops.getCornerY(i,c) << endl;
-        }*/
-	/*	cout << "distance = " << dist << endl;
-		cout << "offset in y for plane = " << offY << endl;
-		cout << "angle for plane = " << vinkel << endl;
-*/
-//cout << ofGetFrameRate() << endl;
-    }
-    //--------------------------------------------------------------
-    void ofApp::onBroadcast( ofxLibwebsockets::Event& args ){
-        cout<<"got broadcast "<<args.message<<endl;
-    }
+//--------------------------------------------------------------
+void ofApp::onBroadcast( ofxLibwebsockets::Event& args ){
+  cout<<"got broadcast "<<args.message<<endl;
+}
